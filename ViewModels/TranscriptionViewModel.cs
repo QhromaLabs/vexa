@@ -457,6 +457,7 @@ public sealed class TranscriptionViewModel : INotifyPropertyChanged
         Session.AudioFile = path;
         AudioPath = path;
         WaveformData = await _waveformGenerator.GenerateAsync(path);
+        _audio.Play();
         MarkDirty("Audio loaded");
         RaiseCommandStates();
     }
