@@ -15,6 +15,14 @@ public sealed class ShortcutProfile
         profile.Bindings[InputAction.SlowDown] = new KeyGesture(Key.F3);
         profile.Bindings[InputAction.SpeedUp] = new KeyGesture(Key.F4);
         profile.Bindings[InputAction.LoopLastFiveSeconds] = new KeyGesture(Key.Space, ModifierKeys.Control);
+        
+        profile.Bindings[InputAction.OpenAudio] = new KeyGesture(Key.O, ModifierKeys.Control);
+        profile.Bindings[InputAction.Save] = new KeyGesture(Key.S, ModifierKeys.Control);
+        profile.Bindings[InputAction.Export] = new KeyGesture(Key.S, ModifierKeys.Control | ModifierKeys.Shift);
+        profile.Bindings[InputAction.ZoomIn] = new KeyGesture(Key.OemPlus, ModifierKeys.Control);
+        profile.Bindings[InputAction.ZoomOut] = new KeyGesture(Key.OemMinus, ModifierKeys.Control);
+        profile.Bindings[InputAction.LoopSelection] = new KeyGesture(Key.L, ModifierKeys.Control);
+        
         return profile;
     }
 }

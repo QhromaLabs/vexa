@@ -6,5 +6,11 @@ public enum InputAction
     Rewind,
     SlowDown,
     SpeedUp,
-    LoopLastFiveSeconds
+    LoopLastFiveSeconds,
+    OpenAudio,
+    Save,
+    Export,
+    ZoomIn,
+    ZoomOut,
+    LoopSelection
 }

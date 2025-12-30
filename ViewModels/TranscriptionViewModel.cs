@@ -36,6 +36,7 @@ public sealed class TranscriptionViewModel : INotifyPropertyChanged
     private double _rewindSeconds = 2.0;
     private bool _isDirty;
     private bool _isSeeking;
+    private ShortcutProfile _shortcutProfile = ShortcutProfile.CreateDefaults();
 
     public TranscriptionViewModel(AudioEngine audio, SrtService srtService, ExportService exportService, JsonSessionService jsonService)
     {
@@ -253,6 +254,22 @@ public sealed class TranscriptionViewModel : INotifyPropertyChanged
     public RelayCommand<string> AddMarkerCommand { get; }
     public RelayCommand ZoomInCommand { get; }
     public RelayCommand ZoomOutCommand { get; }
+    public RelayCommand<object>? UpdateShortcutCommand { get; set; }
+
+    public ShortcutProfile CurrentShortcuts
+    {
+        get => _shortcutProfile;
+        private set { _shortcutProfile = value; OnPropertyChanged(); }
+    }
+
+    public string GetShortcutLabel(InputAction action)
+    {
+        if (CurrentShortcuts.Bindings.TryGetValue(action, out var gesture))
+        {
+            return gesture.GetDisplayStringForCulture(CultureInfo.CurrentCulture);
+        }
+        return "None";
+    }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

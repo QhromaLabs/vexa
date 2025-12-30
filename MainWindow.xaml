@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="clr-namespace:Vexa.Controls"
         xmlns:converters="clr-namespace:Vexa.Converters"
+        xmlns:Models="clr-namespace:Vexa.Models"
         mc:Ignorable="d"
         Title="Vexa Station"
         Height="900"
@@ -15,6 +16,35 @@
         <converters:BoolToBrushConverter x:Key="ActiveSegmentConverter"
                                          TrueBrush="#F5F5F5"
                                          FalseBrush="Transparent" />
+
+        <Style x:Key="ControlButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="#E0E0E0" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="Margin" Value="2" />
+            <Setter Property="Background" Value="White" />
+            <EventSetter Event="MouseRightButtonUp" Handler="OnButtonRightClick" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F5F5F5" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ShortcutBarStyle" TargetType="Border">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#DDDDDD" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="20" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.1" />
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Grid Background="#E8E8E8">
@@ -46,30 +76,30 @@
         <Border Grid.Row="2" Background="White" Padding="8,4" BorderBrush="#DDDDDD" BorderThickness="0,0,0,1">
             <Grid>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                    <Button Content="📂" Command="{Binding OpenAudioCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Open Audio File" />
+                    <Button Content="📂" Command="{Binding OpenAudioCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Open Audio File" Tag="{x:Static Models:InputAction.OpenAudio}" />
                     <Separator Width="1" Margin="8,4" Background="#EEEEEE" />
-                    <Button Content="▶" Command="{Binding PlayPauseCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Play/Pause (F1)" />
-                    <Button Content="⏸" Command="{Binding PlayPauseCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Pause (F1)" />
-                    <Button Content="⏮" Command="{Binding RewindCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Rewind (F2)" />
-                    <Button Content="⏪" Command="{Binding RewindCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Back (F2)" />
+                    <Button Content="▶" Command="{Binding PlayPauseCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Play/Pause" Tag="{x:Static Models:InputAction.PlayPause}" />
+                    <Button Content="⏸" Command="{Binding PlayPauseCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Pause" Tag="{x:Static Models:InputAction.PlayPause}" />
+                    <Button Content="⏮" Command="{Binding RewindCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Rewind" Tag="{x:Static Models:InputAction.Rewind}" />
+                    <Button Content="⏪" Command="{Binding RewindCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Back" Tag="{x:Static Models:InputAction.Rewind}" />
                     <Button Content="⏩" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Forward" />
                     <Button Content="⏭" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Next Segment" />
                     
                     <Separator Width="1" Margin="8,4" Background="#EEEEEE" />
                     
                     <TextBlock Text="🔈" VerticalAlignment="Center" Margin="4,0" />
-                    <Slider Value="{Binding Volume}" Width="100" Margin="4,0" />
+                    <Slider Value="{Binding Volume}" Minimum="0" Maximum="1" TickFrequency="0.1" IsSnapToTickEnabled="False" Width="100" Margin="4,0" />
                     
                     <Separator Width="1" Margin="8,4" Background="#EEEEEE" />
                     
-                    <Button Content="🔄" Command="{Binding LoopSelectionCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Loop selection" />
-                    <Button Content="↺" Command="{Binding LoopLastFiveSecondsCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Loop last 5s (Ctrl+Space)" />
+                    <Button Content="🔄" Command="{Binding LoopSelectionCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Loop selection" Tag="{x:Static Models:InputAction.LoopSelection}" />
+                    <Button Content="↺" Command="{Binding LoopLastFiveSecondsCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Loop last 5s" Tag="{x:Static Models:InputAction.LoopLastFiveSeconds}" />
                     <Button Content="⚡" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Auto-split" />
                     
                     <Separator Width="1" Margin="8,4" Background="#EEEEEE" />
                     
-                    <Button Content="-" Command="{Binding ZoomOutCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Zoom out" />
-                    <Button Content="+" Command="{Binding ZoomInCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Zoom in" />
+                    <Button Content="-" Command="{Binding ZoomOutCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Zoom out" Tag="{x:Static Models:InputAction.ZoomOut}" />
+                    <Button Content="+" Command="{Binding ZoomInCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Zoom in" Tag="{x:Static Models:InputAction.ZoomIn}" />
                     <Button Content="🕐" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Time View" />
                     <Button Content="🔍" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Search" />
                     <Button Content="AB" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="AB Loop" />
@@ -84,7 +114,6 @@
                         <ComboBoxItem Content="1.2x" Tag="1.2" />
                         <ComboBoxItem Content="1.5x" Tag="1.5" />
                     </ComboBox>
-
                     <TextBlock Text="Time:" VerticalAlignment="Center" Foreground="#555555" Margin="8,0" />
                     <TextBlock Text="{Binding FormattedCurrentTime}" FontWeight="SemiBold" VerticalAlignment="Center" Width="45" />
                     
@@ -124,6 +153,20 @@
                 <MenuItem Header="Save" Command="{Binding SaveCommand}" />
             </MenuItem>
         </Menu>
+
+        <!-- Shortcut Customization Bar -->
+        <Popup x:Name="ShortcutPopup" StaysOpen="False" Placement="MousePoint" AllowsTransparency="True">
+            <Border Style="{StaticResource ShortcutBarStyle}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Press a key to set shortcut for " VerticalAlignment="Center" Margin="0,0,4,0" Foreground="#555555" />
+                    <TextBlock x:Name="ShortcutActionText" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0" />
+                    <Border Background="#F0F0F0" Padding="8,2" CornerRadius="4">
+                        <TextBlock x:Name="NewShortcutPreview" Text="..." FontWeight="Bold" Foreground="#4A90E2" />
+                    </Border>
+                    <Button Content="✕" Click="CloseShortcutPopup" BorderThickness="0" Background="Transparent" Foreground="#999999" Margin="12,0,0,0" Cursor="Hand" />
+                </StackPanel>
+            </Border>
+        </Popup>
     </Grid>
 </Window>
 
