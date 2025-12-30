@@ -15,7 +15,7 @@ public partial class WaveformControl : UserControl
 
     public static readonly DependencyProperty CurrentPositionProperty =
         DependencyProperty.Register(nameof(CurrentPosition), typeof(TimeSpan), typeof(WaveformControl),
-            new PropertyMetadata(TimeSpan.Zero, OnCurrentPositionChanged));
+            new FrameworkPropertyMetadata(TimeSpan.Zero, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnCurrentPositionChanged));
 
     public static readonly DependencyProperty ZoomLevelProperty =
         DependencyProperty.Register(nameof(ZoomLevel), typeof(double), typeof(WaveformControl),
@@ -48,6 +48,59 @@ public partial class WaveformControl : UserControl
     private static void OnWaveformDataChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) => ((WaveformControl)d).Render();
     private static void OnCurrentPositionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) => ((WaveformControl)d).UpdatePlayhead();
     private static void OnZoomLevelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) => ((WaveformControl)d).Render();
+
+    private void OnMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        if (WaveformData == null || WaveformData.Duration.TotalSeconds == 0) return;
+
+        Point p = e.GetPosition(MainGrid);
+        double x = p.X;
+        double width = ActualWidth * ZoomLevel;
+
+        if (x < 0 || x > width)
+        {
+            OnMouseLeave(sender, e);
+            return;
+        }
+
+        double progress = x / width;
+        TimeSpan time = TimeSpan.FromSeconds(progress * WaveformData.Duration.TotalSeconds);
+
+        HoverLine.Visibility = Visibility.Visible;
+        HoverLine.Margin = new Thickness(x, 0, 0, 0);
+
+        HoverTooltip.Visibility = Visibility.Visible;
+        HoverTimeText.Text = FormatTimeTooltip(time);
+
+        // Position tooltip above mouse, handle edge cases
+        double tooltipX = x + 10;
+        if (tooltipX + HoverTooltip.ActualWidth > ActualWidth)
+            tooltipX = x - HoverTooltip.ActualWidth - 10;
+
+        HoverTooltip.Margin = new Thickness(tooltipX, p.Y - 30, 0, 0);
+    }
+
+    private void OnMouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        HoverLine.Visibility = Visibility.Collapsed;
+        HoverTooltip.Visibility = Visibility.Collapsed;
+    }
+
+    private void OnMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (WaveformData == null || WaveformData.Duration.TotalSeconds == 0) return;
+
+        Point p = e.GetPosition(MainGrid);
+        double progress = p.X / (ActualWidth * ZoomLevel);
+        CurrentPosition = TimeSpan.FromSeconds(progress * WaveformData.Duration.TotalSeconds);
+    }
+
+    private string FormatTimeTooltip(TimeSpan time)
+    {
+        if (time.TotalHours >= 1)
+            return time.ToString(@"hh\:mm\:ss\.f");
+        return time.ToString(@"mm\:ss\.f");
+    }
 
     private void Render()
     {
@@ -95,7 +148,8 @@ public partial class WaveformControl : UserControl
             Fill = new SolidColorBrush(Color.FromRgb(74, 144, 226)), // Nice blue
             Opacity = 0.6,
             Stroke = new SolidColorBrush(Color.FromRgb(58, 114, 180)), // Darker blue border
-            StrokeThickness = 0.5
+            StrokeThickness = 0.5,
+            IsHitTestVisible = false
         };
 
         WaveformCanvas.Children.Add(waveformPath);
@@ -113,7 +167,8 @@ public partial class WaveformControl : UserControl
                 Stroke = new SolidColorBrush(Color.FromRgb(220, 220, 220)),
                 StrokeDashArray = new DoubleCollection { 4, 4 },
                 StrokeThickness = 1,
-                Opacity = 1
+                Opacity = 1,
+                IsHitTestVisible = false
             };
             RulerCanvas.Children.Add(mark);
 
@@ -122,7 +177,8 @@ public partial class WaveformControl : UserControl
                 Text = $"{i:D2}:00",
                 FontSize = 10,
                 FontWeight = FontWeights.Bold,
-                Foreground = Brushes.DimGray
+                Foreground = Brushes.DimGray,
+                IsHitTestVisible = false
             };
             Canvas.SetLeft(label, x + 4);
             Canvas.SetTop(label, 2);
