@@ -13,7 +13,6 @@
         MinHeight="720"
         MinWidth="1100">
     <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <converters:FileNameConverter x:Key="FileNameConverter" />
         <converters:TrueToWeightConverter x:Key="TrueToWeightConverter" />
         <converters:BoolToBrushConverter x:Key="ActiveSegmentConverter"
@@ -150,12 +149,13 @@
 
             <!-- Editor (Paper Style) -->
             <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Padding="40">
-                <Border Background="White" MaxWidth="800" MinHeight="900" CornerRadius="2" BorderBrush="#CCCCCC" BorderThickness="1">
+                <Border Background="White" MaxWidth="800" MinHeight="900" CornerRadius="2" BorderBrush="#CCCCCC" BorderThickness="1"
+                        MouseLeftButtonDown="OnPaperMouseDown" Padding="60">
                     <Border.Effect>
                         <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1" />
                     </Border.Effect>
                     
-                    <ItemsControl ItemsSource="{Binding Session.Segments}" Margin="60">
+                    <ItemsControl x:Name="SegmentsItemsControl" ItemsSource="{Binding Session.Segments}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border Background="{Binding IsActive, Converter={StaticResource ActiveSegmentConverter}}" Padding="4" Margin="0,0,0,2">

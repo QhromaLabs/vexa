@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
 using Vexa.Models;
 using Vexa.Services;
 using Vexa.ViewModels;
@@ -118,6 +119,40 @@ public partial class MainWindow : Window
             ViewModel.InsertTimestampCommand.Execute(focused);
             e.Handled = true;
         }
+    }
+
+    private void OnPaperMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        // If the background border itself was clicked (not a RichTextBox or other control)
+        if (e.OriginalSource == sender || e.OriginalSource is Border)
+        {
+            if (SegmentsItemsControl.Items.Count > 0)
+            {
+                var lastIndex = SegmentsItemsControl.Items.Count - 1;
+                var container = SegmentsItemsControl.ItemContainerGenerator.ContainerFromIndex(lastIndex) as FrameworkElement;
+                if (container != null)
+                {
+                    var rtb = FindVisualChild<RichTextBox>(container);
+                    if (rtb != null)
+                    {
+                        rtb.Focus();
+                        rtb.CaretPosition = rtb.Document.ContentEnd;
+                    }
+                }
+            }
+        }
+    }
+
+    private T FindVisualChild<T>(DependencyObject obj) where T : DependencyObject
+    {
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
+        {
+            DependencyObject child = VisualTreeHelper.GetChild(obj, i);
+            if (child is T t) return t;
+            T childOfChild = FindVisualChild<T>(child);
+            if (childOfChild != null) return childOfChild;
+        }
+        return null;
     }
 
     private void UpdateToolTips()
