@@ -58,7 +58,7 @@
         </Style>
     </Window.Resources>
 
-    <Grid Background="#E8E8E8">
+    <Grid Background="#E8E8E8" AllowDrop="True" PreviewDragOver="OnDragOver" Drop="OnDrop">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" /> <!-- Header -->
             <RowDefinition Height="120" /> <!-- Waveform -->

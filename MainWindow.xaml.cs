@@ -121,6 +121,28 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OnDragOver(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent(DataFormats.FileDrop))
+        {
+            e.Effects = DragDropEffects.Copy;
+        }
+        else
+        {
+            e.Effects = DragDropEffects.None;
+        }
+        e.Handled = true;
+    }
+
+    private void OnDrop(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent(DataFormats.FileDrop))
+        {
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            ViewModel.ProcessDroppedFiles(files);
+        }
+    }
+
     private void OnPaperMouseDown(object sender, MouseButtonEventArgs e)
     {
         // If the background border itself was clicked (not a RichTextBox or other control)

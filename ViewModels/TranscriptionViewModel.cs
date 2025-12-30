@@ -414,6 +414,43 @@ public sealed class TranscriptionViewModel : INotifyPropertyChanged
         }
     }
 
+    public void ProcessDroppedFiles(string[] filePaths)
+    {
+        if (filePaths == null || filePaths.Length == 0) return;
+
+        var supportedExtensions = new[] { ".mp3", ".wav", ".m4a", ".flac", ".ogg" };
+        var audioFiles = filePaths
+            .Where(f => supportedExtensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
+            .ToList();
+
+        if (audioFiles.Count == 0) return;
+
+        bool wasEmpty = Playlist.Count == 0;
+        int firstNewIndex = Playlist.Count;
+
+        foreach (var file in audioFiles)
+        {
+            if (!Playlist.Contains(file))
+            {
+                Playlist.Add(file);
+            }
+        }
+
+        if (wasEmpty && Playlist.Count > 0)
+        {
+            PlaylistIndex = 0;
+            // The PlaylistIndex setter calls LoadAudioInternal which sets up the engine.
+            // We should auto-play if it's a fresh drag into an empty app.
+            if (_audio.State != PlaybackState.Playing)
+            {
+                _audio.Play();
+            }
+        }
+
+        MarkDirty($"{audioFiles.Count} file(s) added via drag-and-drop");
+        RaiseCommandStates();
+    }
+
     private async void LoadAudioInternal(string path)
     {
         _audio.Load(path);
