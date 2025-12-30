@@ -37,6 +37,9 @@ public sealed class TranscriptionViewModel : INotifyPropertyChanged
     private bool _isDirty;
     private bool _isSeeking;
     private ShortcutProfile _shortcutProfile = ShortcutProfile.CreateDefaults();
+    private ObservableCollection<string> _playlist = new();
+    private int _playlistIndex = -1;
+    private bool _isPlaylistVisible;
 
     public TranscriptionViewModel(AudioEngine audio, SrtService srtService, ExportService exportService, JsonSessionService jsonService)
     {
@@ -62,9 +65,14 @@ public sealed class TranscriptionViewModel : INotifyPropertyChanged
         SpeedUpCommand = new RelayCommand(() => PlaybackSpeed = Math.Min(1.5, PlaybackSpeed + 0.1), () => _audio.HasAudio);
         LoopLastFiveSecondsCommand = new RelayCommand(LoopLastFiveSeconds, () => _audio.HasAudio);
         LoopSelectionCommand = new RelayCommand(LoopSelection, () => SelectedSegment != null);
+        ForwardCommand = new RelayCommand(() => _audio.Forward(), () => _audio.HasAudio);
+        NextSegmentCommand = new RelayCommand(GoToNextSegment, () => _audio.HasAudio);
         ClearLoopCommand = new RelayCommand(() => _audio.ClearLoop(), () => _audio.HasAudio);
         InsertTimestampCommand = new RelayCommand<RichTextBox>(InsertTimestamp);
         AddMarkerCommand = new RelayCommand<string>(AddMarker, _ => SelectedSegment != null);
+        RemoveFromPlaylistCommand = new RelayCommand<string>(path => { if (path != null) Playlist.Remove(path); });
+        ClearPlaylistCommand = new RelayCommand(() => { Playlist.Clear(); PlaylistIndex = -1; });
+        TogglePlaylistCommand = new RelayCommand(() => IsPlaylistVisible = !IsPlaylistVisible);
         ZoomInCommand = new RelayCommand(() => ZoomLevel = Math.Min(10, ZoomLevel * 1.2), () => WaveformData != null);
         ZoomOutCommand = new RelayCommand(() => ZoomLevel = Math.Max(1, ZoomLevel / 1.2), () => WaveformData != null);
 
@@ -91,6 +99,8 @@ public sealed class TranscriptionViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(IsPlaying));
             OnPropertyChanged(nameof(PlaybackStateLabel));
         };
+
+        _audio.PlaybackEnded += (_, _) => PlayNextInPlaylist();
 
         _autosaveTimer = new Timer(30_000);
         _autosaveTimer.Elapsed += (_, _) => Autosave();
@@ -169,7 +179,34 @@ public sealed class TranscriptionViewModel : INotifyPropertyChanged
 
     public bool IsPlaying => _audio.State == PlaybackState.Playing;
 
-    public string PlaybackStateLabel => _audio.State.ToString();
+    public string PlaybackStateLabel => _audio.State switch
+    {
+        PlaybackState.Playing => "Playing",
+        PlaybackState.Paused => "Paused",
+        _ => "Stopped"
+    };
+
+    public ObservableCollection<string> Playlist => _playlist;
+
+    public int PlaylistIndex
+    {
+        get => _playlistIndex;
+        set
+        {
+            if (_playlistIndex != value && value >= 0 && value < _playlist.Count)
+            {
+                _playlistIndex = value;
+                LoadAudioInternal(_playlist[_playlistIndex]);
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public bool IsPlaylistVisible
+    {
+        get => _isPlaylistVisible;
+        set { _isPlaylistVisible = value; OnPropertyChanged(); }
+    }
 
     public double PlaybackSpeed
     {
@@ -249,7 +286,12 @@ public sealed class TranscriptionViewModel : INotifyPropertyChanged
     public RelayCommand SpeedUpCommand { get; }
     public RelayCommand LoopLastFiveSecondsCommand { get; }
     public RelayCommand LoopSelectionCommand { get; }
+    public RelayCommand ForwardCommand { get; }
+    public RelayCommand NextSegmentCommand { get; }
     public RelayCommand ClearLoopCommand { get; }
+    public RelayCommand<string> RemoveFromPlaylistCommand { get; }
+    public RelayCommand ClearPlaylistCommand { get; }
+    public RelayCommand TogglePlaylistCommand { get; }
     public RelayCommand<RichTextBox> InsertTimestampCommand { get; }
     public RelayCommand<string> AddMarkerCommand { get; }
     public RelayCommand ZoomInCommand { get; }
@@ -297,16 +339,46 @@ public sealed class TranscriptionViewModel : INotifyPropertyChanged
     {
         var dialog = new OpenFileDialog
         {
-            Filter = "Audio Files|*.mp3;*.wav;*.m4a|All Files|*.*"
+            Filter = "Audio Files|*.mp3;*.wav;*.m4a|All Files|*.*",
+            Multiselect = true
         };
         if (dialog.ShowDialog() == true)
         {
-            _audio.Load(dialog.FileName);
-            Session.AudioFile = dialog.FileName;
-            AudioPath = dialog.FileName;
-            WaveformData = await _waveformGenerator.GenerateAsync(dialog.FileName);
-            MarkDirty("Audio loaded");
+            var first = true;
+            foreach (var file in dialog.FileNames)
+            {
+                if (!Playlist.Contains(file))
+                {
+                    Playlist.Add(file);
+                }
+                
+                if (first && PlaylistIndex == -1)
+                {
+                    PlaylistIndex = Playlist.Count - 1;
+                    first = false;
+                }
+            }
+            
+            MarkDirty("Audio added to playlist");
             RaiseCommandStates();
+        }
+    }
+
+    private async void LoadAudioInternal(string path)
+    {
+        _audio.Load(path);
+        Session.AudioFile = path;
+        AudioPath = path;
+        WaveformData = await _waveformGenerator.GenerateAsync(path);
+        MarkDirty("Audio loaded");
+        RaiseCommandStates();
+    }
+
+    private void PlayNextInPlaylist()
+    {
+        if (PlaylistIndex < Playlist.Count - 1)
+        {
+            PlaylistIndex++;
         }
     }
 
@@ -525,13 +597,24 @@ public sealed class TranscriptionViewModel : INotifyPropertyChanged
 
     private void LoopSelection()
     {
-        if (SelectedSegment == null)
-        {
-            return;
-        }
-
+        if (SelectedSegment == null) return;
         _audio.SetLoop(SelectedSegment.StartTime, SelectedSegment.EndTime);
         Status = "Looping selection";
+    }
+
+    private void GoToNextSegment()
+    {
+        var position = AudioPosition.TotalSeconds;
+        var next = Session.Segments.FirstOrDefault(s => s.StartSeconds > position);
+        if (next != null)
+        {
+            AudioPosition = TimeSpan.FromSeconds(next.StartSeconds);
+            Status = "Skipped to next segment";
+        }
+        else
+        {
+            Status = "No next segment found";
+        }
     }
 
     private void InsertTimestamp(RichTextBox? richTextBox)
@@ -619,8 +702,13 @@ public sealed class TranscriptionViewModel : INotifyPropertyChanged
         SpeedUpCommand.RaiseCanExecuteChanged();
         LoopLastFiveSecondsCommand.RaiseCanExecuteChanged();
         LoopSelectionCommand.RaiseCanExecuteChanged();
+        ForwardCommand.RaiseCanExecuteChanged();
+        NextSegmentCommand.RaiseCanExecuteChanged();
         ClearLoopCommand.RaiseCanExecuteChanged();
         AddMarkerCommand.RaiseCanExecuteChanged();
+        RemoveFromPlaylistCommand.RaiseCanExecuteChanged();
+        ClearPlaylistCommand.RaiseCanExecuteChanged();
+        TogglePlaylistCommand.RaiseCanExecuteChanged();
     }
 
     private static string FormatClock(TimeSpan span)

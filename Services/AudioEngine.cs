@@ -32,12 +32,17 @@ public sealed class AudioEngine
             DurationChanged?.Invoke(this, EventArgs.Empty);
             _timer.Start();
         };
-        _player.MediaEnded += (_, _) => Stop();
+        _player.MediaEnded += (_, _) => 
+        {
+            Stop();
+            PlaybackEnded?.Invoke(this, EventArgs.Empty);
+        };
     }
 
     public event EventHandler? PositionChanged;
     public event EventHandler? DurationChanged;
     public event EventHandler? PlaybackStateChanged;
+    public event EventHandler? PlaybackEnded;
 
     public PlaybackState State { get; private set; } = PlaybackState.Stopped;
 
@@ -99,6 +104,13 @@ public sealed class AudioEngine
     {
         var position = _player.Position - RewindAmount;
         _player.Position = position < TimeSpan.Zero ? TimeSpan.Zero : position;
+        PositionChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void Forward()
+    {
+        var position = _player.Position + RewindAmount;
+        _player.Position = position > Duration ? Duration : position;
         PositionChanged?.Invoke(this, EventArgs.Empty);
     }
 

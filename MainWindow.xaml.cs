@@ -164,6 +164,12 @@ public partial class MainWindow : Window
                 case InputAction.LoopSelection:
                     InputBindings.Add(new KeyBinding(ViewModel.LoopSelectionCommand, binding.Value));
                     break;
+                case InputAction.Forward:
+                    InputBindings.Add(new KeyBinding(ViewModel.ForwardCommand, binding.Value));
+                    break;
+                case InputAction.NextSegment:
+                    InputBindings.Add(new KeyBinding(ViewModel.NextSegmentCommand, binding.Value));
+                    break;
             }
         }
 

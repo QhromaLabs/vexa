@@ -1,8 +1,15 @@
 <Application x:Class="Vexa.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:Vexa.Converters">
     <Application.Resources>
         <ResourceDictionary>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            <converters:FileNameConverter x:Key="FileNameConverter" />
+            <converters:TrueToWeightConverter x:Key="TrueToWeightConverter" />
+            <converters:BoolToBrushConverter x:Key="ActiveSegmentConverter"
+                                         TrueBrush="#F5F5F5"
+                                         FalseBrush="Transparent" />
             <Color x:Key="Ink">#333333</Color>
             <Color x:Key="Paper">#FFFFFF</Color>
             <Color x:Key="Panel">#FDFDFD</Color>

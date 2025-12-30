@@ -12,5 +12,7 @@ public enum InputAction
     Export,
     ZoomIn,
     ZoomOut,
-    LoopSelection
+    LoopSelection,
+    Forward,
+    NextSegment
 }

@@ -13,22 +13,34 @@
         MinHeight="720"
         MinWidth="1100">
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:FileNameConverter x:Key="FileNameConverter" />
+        <converters:TrueToWeightConverter x:Key="TrueToWeightConverter" />
         <converters:BoolToBrushConverter x:Key="ActiveSegmentConverter"
                                          TrueBrush="#F5F5F5"
                                          FalseBrush="Transparent" />
 
-        <Style x:Key="ControlButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="Transparent" />
+        <Style x:Key="ControlButtonStyle" TargetType="Control">
+            <Setter Property="Background" Value="White" />
             <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="BorderBrush" Value="#E0E0E0" />
             <Setter Property="Padding" Value="8,4" />
             <Setter Property="Margin" Value="2" />
-            <Setter Property="Background" Value="White" />
-            <EventSetter Event="MouseRightButtonUp" Handler="OnButtonRightClick" />
+            <EventSetter Event="ButtonBase.MouseRightButtonUp" Handler="OnButtonRightClick" />
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="#F5F5F5" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ControlToggleButtonStyle" TargetType="ToggleButton" BasedOn="{StaticResource ControlButtonStyle}">
+            <Style.Triggers>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Background" Value="#E0E0E0" />
+                    <Setter Property="BorderBrush" Value="#4A90E2" />
+                    <Setter Property="Foreground" Value="#4A90E2" />
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -82,8 +94,8 @@
                     <Button Content="⏸" Command="{Binding PlayPauseCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Pause" Tag="{x:Static Models:InputAction.PlayPause}" />
                     <Button Content="⏮" Command="{Binding RewindCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Rewind" Tag="{x:Static Models:InputAction.Rewind}" />
                     <Button Content="⏪" Command="{Binding RewindCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Back" Tag="{x:Static Models:InputAction.Rewind}" />
-                    <Button Content="⏩" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Forward" />
-                    <Button Content="⏭" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Next Segment" />
+                    <Button Content="⏩" Command="{Binding ForwardCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Forward" Tag="{x:Static Models:InputAction.Forward}" />
+                    <Button Content="⏭" Command="{Binding NextSegmentCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Next Segment" Tag="{x:Static Models:InputAction.NextSegment}" />
                     
                     <Separator Width="1" Margin="8,4" Background="#EEEEEE" />
                     
@@ -103,6 +115,10 @@
                     <Button Content="🕐" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Time View" />
                     <Button Content="🔍" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Search" />
                     <Button Content="AB" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="AB Loop" />
+                    
+                    <Separator Width="1" Margin="8,4" Background="#EEEEEE" />
+                    
+                    <ToggleButton IsChecked="{Binding IsPlaylistVisible}" Content="📋" Style="{StaticResource ControlToggleButtonStyle}" Width="32" ToolTip="Toggle Playlist" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
@@ -125,26 +141,70 @@
             </Grid>
         </Border>
 
-        <!-- Editor (Paper Style) -->
-        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" Padding="40">
-            <Border Background="White" MaxWidth="800" MinHeight="900" CornerRadius="2" BorderBrush="#CCCCCC" BorderThickness="1">
-                <Border.Effect>
-                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1" />
-                </Border.Effect>
-                
-                <ItemsControl ItemsSource="{Binding Segments}" Margin="60">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Background="{Binding IsActive, Converter={StaticResource ActiveSegmentConverter}}" Padding="4" Margin="0,0,0,8">
-                                <RichTextBox converters:RichTextBoxHelper.BoundText="{Binding Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                             BorderThickness="0" Background="Transparent" FontSize="14" Cursor="IBeam">
-                                </RichTextBox>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+        <!-- Main Content Area -->
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Editor (Paper Style) -->
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Padding="40">
+                <Border Background="White" MaxWidth="800" MinHeight="900" CornerRadius="2" BorderBrush="#CCCCCC" BorderThickness="1">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1" />
+                    </Border.Effect>
+                    
+                    <ItemsControl ItemsSource="{Binding Session.Segments}" Margin="60">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{Binding IsActive, Converter={StaticResource ActiveSegmentConverter}}" Padding="4" Margin="0,0,0,8">
+                                    <RichTextBox converters:RichTextBoxHelper.BoundText="{Binding Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                 BorderThickness="0" Background="Transparent" FontSize="14" Cursor="IBeam">
+                                    </RichTextBox>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+            </ScrollViewer>
+
+            <!-- Playlist Sidebar -->
+            <Border Grid.Column="1" Width="260" Background="#F8F8F8" BorderBrush="#DDDDDD" BorderThickness="1,0,0,0" Padding="12"
+                    Visibility="{Binding IsPlaylistVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="Audio Queue" FontSize="18" FontWeight="SemiBold" Foreground="#333333" Margin="0,0,0,12" />
+
+                    <ListBox Grid.Row="1" ItemsSource="{Binding Playlist}" SelectedIndex="{Binding PlaylistIndex}"
+                             Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Converter={StaticResource FileNameConverter}}" 
+                                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                                               FontWeight="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}, Converter={StaticResource TrueToWeightConverter}}" />
+                                    <Button Grid.Column="1" Content="✕" Command="{Binding DataContext.RemoveFromPlaylistCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}" Background="Transparent" BorderThickness="0" Foreground="#999999" Padding="4,0" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <Button Grid.Row="2" Content="Clear Queue" Command="{Binding ClearPlaylistCommand}" 
+                            Style="{StaticResource ControlButtonStyle}" HorizontalAlignment="Stretch" Margin="0,12,0,0" />
+                </Grid>
             </Border>
-        </ScrollViewer>
+        </Grid>
 
         <Menu Grid.Row="0" Opacity="0" IsHitTestVisible="False">
             <MenuItem Header="_File">

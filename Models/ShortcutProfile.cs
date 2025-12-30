@@ -22,6 +22,8 @@ public sealed class ShortcutProfile
         profile.Bindings[InputAction.ZoomIn] = new KeyGesture(Key.OemPlus, ModifierKeys.Control);
         profile.Bindings[InputAction.ZoomOut] = new KeyGesture(Key.OemMinus, ModifierKeys.Control);
         profile.Bindings[InputAction.LoopSelection] = new KeyGesture(Key.L, ModifierKeys.Control);
+        profile.Bindings[InputAction.Forward] = new KeyGesture(Key.F5);
+        profile.Bindings[InputAction.NextSegment] = new KeyGesture(Key.F6);
         
         return profile;
     }
