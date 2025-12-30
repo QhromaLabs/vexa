@@ -70,22 +70,35 @@ public partial class WaveformControl : UserControl
         WaveformCanvas.Width = width;
         RulerCanvas.Width = width;
 
-        // Draw Waveform
-        Polyline polyline = new Polyline
+        // Draw Waveform using StreamGeometry for better performance and quality
+        StreamGeometry geometry = new StreamGeometry();
+        using (StreamGeometryContext ctx = geometry.Open())
         {
-            Stroke = new SolidColorBrush(Color.FromRgb(180, 180, 180)),
-            StrokeThickness = 1
-        };
+            // Start at the bottom left
+            ctx.BeginFigure(new Point(0, height), true, true);
 
-        for (int i = 0; i < WaveformData.Peaks.Length; i++)
-        {
-            double x = (double)i / WaveformData.Peaks.Length * width;
-            double yVal = WaveformData.Peaks[i] * midY * 0.8;
-            polyline.Points.Add(new Point(x, midY - yVal));
-            polyline.Points.Add(new Point(x, midY + yVal));
+            for (int i = 0; i < WaveformData.Peaks.Length; i++)
+            {
+                double x = (double)i / WaveformData.Peaks.Length * width;
+                // Scale peak to 85% of available height, base at bottom
+                double y = height - (WaveformData.Peaks[i] * height * 0.85);
+                ctx.LineTo(new Point(x, y), true, false);
+            }
+
+            // End at the bottom right
+            ctx.LineTo(new Point(width, height), true, false);
         }
 
-        WaveformCanvas.Children.Add(polyline);
+        Path waveformPath = new Path
+        {
+            Data = geometry,
+            Fill = new SolidColorBrush(Color.FromRgb(74, 144, 226)), // Nice blue
+            Opacity = 0.6,
+            Stroke = new SolidColorBrush(Color.FromRgb(58, 114, 180)), // Darker blue border
+            StrokeThickness = 0.5
+        };
+
+        WaveformCanvas.Children.Add(waveformPath);
 
         // Draw Ruler
         int minutes = (int)Math.Ceiling(WaveformData.Duration.TotalMinutes);
@@ -97,10 +110,10 @@ public partial class WaveformControl : UserControl
             {
                 X1 = x, X2 = x,
                 Y1 = 0, Y2 = height,
-                Stroke = Brushes.Red,
+                Stroke = new SolidColorBrush(Color.FromRgb(220, 220, 220)),
                 StrokeDashArray = new DoubleCollection { 4, 4 },
-                StrokeThickness = 0.5,
-                Opacity = 0.5
+                StrokeThickness = 1,
+                Opacity = 1
             };
             RulerCanvas.Children.Add(mark);
 

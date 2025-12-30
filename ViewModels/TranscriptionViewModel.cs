@@ -74,6 +74,7 @@ public sealed class TranscriptionViewModel : INotifyPropertyChanged
                 OnPropertyChanged(nameof(AudioPosition));
                 OnPropertyChanged(nameof(AudioPositionSeconds));
                 OnPropertyChanged(nameof(AudioPositionLabel));
+                OnPropertyChanged(nameof(FormattedCurrentTime));
                 UpdateActiveSegment();
             }
         };
@@ -82,6 +83,7 @@ public sealed class TranscriptionViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(AudioDuration));
             OnPropertyChanged(nameof(AudioDurationSeconds));
             OnPropertyChanged(nameof(AudioDurationLabel));
+            OnPropertyChanged(nameof(FormattedTotalTime));
         };
         _audio.PlaybackStateChanged += (_, _) =>
         {

@@ -46,10 +46,12 @@
         <Border Grid.Row="2" Background="White" Padding="8,4" BorderBrush="#DDDDDD" BorderThickness="0,0,0,1">
             <Grid>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                    <Button Content="▶" Command="{Binding PlayPauseCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Play/Pause" />
-                    <Button Content="⏸" Command="{Binding PlayPauseCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Pause" />
-                    <Button Content="⏮" Command="{Binding RewindCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Rewind" />
-                    <Button Content="⏪" Command="{Binding RewindCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Back" />
+                    <Button Content="📂" Command="{Binding OpenAudioCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Open Audio File" />
+                    <Separator Width="1" Margin="8,4" Background="#EEEEEE" />
+                    <Button Content="▶" Command="{Binding PlayPauseCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Play/Pause (F1)" />
+                    <Button Content="⏸" Command="{Binding PlayPauseCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Pause (F1)" />
+                    <Button Content="⏮" Command="{Binding RewindCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Rewind (F2)" />
+                    <Button Content="⏪" Command="{Binding RewindCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Back (F2)" />
                     <Button Content="⏩" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Forward" />
                     <Button Content="⏭" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Next Segment" />
                     
@@ -61,7 +63,7 @@
                     <Separator Width="1" Margin="8,4" Background="#EEEEEE" />
                     
                     <Button Content="🔄" Command="{Binding LoopSelectionCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Loop selection" />
-                    <Button Content="↺" Command="{Binding LoopLastFiveSecondsCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Loop last 5s" />
+                    <Button Content="↺" Command="{Binding LoopLastFiveSecondsCommand}" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Loop last 5s (Ctrl+Space)" />
                     <Button Content="⚡" Style="{StaticResource ControlButtonStyle}" Width="32" ToolTip="Auto-split" />
                     
                     <Separator Width="1" Margin="8,4" Background="#EEEEEE" />
@@ -89,7 +91,7 @@
                     <TextBlock Text="Total:" VerticalAlignment="Center" Foreground="#555555" Margin="8,0" />
                     <TextBlock Text="{Binding FormattedTotalTime}" FontWeight="SemiBold" VerticalAlignment="Center" Width="45" />
 
-                    <Button Content="Save" Command="{Binding SaveCommand}" Style="{StaticResource ActionButtonStyle}" Margin="12,0,0,0" />
+                    <Button Content="Save" Command="{Binding SaveCommand}" Style="{StaticResource ActionButtonStyle}" Margin="12,0,0,0" ToolTip="Save (Ctrl+S)" />
                 </StackPanel>
             </Grid>
         </Border>
