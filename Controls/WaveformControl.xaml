@@ -13,23 +13,38 @@
             <Canvas x:Name="RulerCanvas" Background="Transparent" />
         </Border>
         
-        <!-- Hover Marker -->
-        <Rectangle x:Name="HoverLine" Width="1" Fill="#994A90E2" Visibility="Collapsed" IsHitTestVisible="False" Panel.ZIndex="5" />
-        
+        <!-- Hover Overlay Canvas (Absolute positioning for performance) -->
+        <Canvas IsHitTestVisible="False" Panel.ZIndex="15">
+            <!-- Hover Marker Line -->
+            <Rectangle x:Name="HoverLine" Width="1" Fill="#994A90E2" Height="{Binding ActualHeight, ElementName=MainGrid}" Visibility="Collapsed">
+                <Rectangle.RenderTransform>
+                    <TranslateTransform x:Name="HoverLineTransform" />
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+            <!-- Pill-shaped Tooltip -->
+            <Border x:Name="HoverTooltip" 
+                    Visibility="Collapsed" 
+                    Background="Black" 
+                    CornerRadius="12" 
+                    Padding="10,4" 
+                    MinWidth="60"
+                    IsHitTestVisible="False">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="5" ShadowDepth="1" Opacity="0.4" />
+                </Border.Effect>
+                <Border.RenderTransform>
+                    <TranslateTransform x:Name="HoverTooltipTransform" />
+                </Border.RenderTransform>
+                <TextBlock x:Name="HoverTimeText" 
+                           Foreground="White" 
+                           FontSize="12" 
+                           FontWeight="Bold" 
+                           HorizontalAlignment="Center" />
+            </Border>
+        </Canvas>
+
         <!-- Playhead -->
         <Rectangle x:Name="Playhead" Width="2" Fill="Red" HorizontalAlignment="Left" Visibility="Collapsed" IsHitTestVisible="False" Panel.ZIndex="10" />
-
-        <!-- Timestamp Tooltip -->
-        <Border x:Name="HoverTooltip" 
-                Visibility="Collapsed" 
-                Background="#333333" 
-                CornerRadius="4" 
-                Padding="6,3" 
-                HorizontalAlignment="Left" 
-                VerticalAlignment="Top" 
-                IsHitTestVisible="False"
-                Panel.ZIndex="15">
-            <TextBlock x:Name="HoverTimeText" Foreground="White" FontSize="11" FontWeight="Bold" />
-        </Border>
     </Grid>
 </UserControl>

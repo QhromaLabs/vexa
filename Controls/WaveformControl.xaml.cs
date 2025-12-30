@@ -66,18 +66,24 @@ public partial class WaveformControl : UserControl
         double progress = x / width;
         TimeSpan time = TimeSpan.FromSeconds(progress * WaveformData.Duration.TotalSeconds);
 
+        // Update Line Position
         HoverLine.Visibility = Visibility.Visible;
-        HoverLine.Margin = new Thickness(x, 0, 0, 0);
+        HoverLineTransform.X = x;
 
+        // Update Tooltip Position and Text
         HoverTooltip.Visibility = Visibility.Visible;
         HoverTimeText.Text = FormatTimeTooltip(time);
 
-        // Position tooltip above mouse, handle edge cases
-        double tooltipX = x + 10;
-        if (tooltipX + HoverTooltip.ActualWidth > ActualWidth)
-            tooltipX = x - HoverTooltip.ActualWidth - 10;
+        // Center tooltip on X, keep Y at a fixed comfortable height (e.g. 35)
+        double tooltipX = x - (HoverTooltip.ActualWidth / 2);
+        
+        // Keep within bounds
+        if (tooltipX < 5) tooltipX = 5;
+        if (tooltipX + HoverTooltip.ActualWidth > ActualWidth - 5) 
+            tooltipX = ActualWidth - HoverTooltip.ActualWidth - 5;
 
-        HoverTooltip.Margin = new Thickness(tooltipX, p.Y - 30, 0, 0);
+        HoverTooltipTransform.X = tooltipX;
+        HoverTooltipTransform.Y = 35; // Consistent height near the top
     }
 
     private void OnMouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
