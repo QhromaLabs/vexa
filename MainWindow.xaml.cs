@@ -88,6 +88,11 @@ public partial class MainWindow : Window
             var key = e.Key == Key.System ? e.SystemKey : e.Key;
             if (key == Key.LeftCtrl || key == Key.RightCtrl || key == Key.LeftAlt || key == Key.RightAlt || key == Key.LeftShift || key == Key.RightShift || key == Key.LWin || key == Key.RWin)
             {
+                var currentModifiers = Keyboard.Modifiers;
+                if (currentModifiers != ModifierKeys.None)
+                {
+                    NewShortcutPreview.Text = currentModifiers.ToString() + " + ...";
+                }
                 return;
             }
 
@@ -97,6 +102,7 @@ public partial class MainWindow : Window
             ViewModel.CurrentShortcuts.Bindings[_recordingAction.Value] = gesture;
             NewShortcutPreview.Text = ViewModel.GetShortcutLabel(_recordingAction.Value);
             
+            ViewModel.SaveShortcuts();
             RegisterShortcuts(ViewModel.CurrentShortcuts);
             UpdateToolTips();
             

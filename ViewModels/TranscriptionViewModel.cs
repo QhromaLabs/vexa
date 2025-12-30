@@ -21,6 +21,7 @@ public sealed class TranscriptionViewModel : INotifyPropertyChanged
     private readonly SrtService _srtService;
     private readonly ExportService _exportService;
     private readonly JsonSessionService _jsonService;
+    private readonly ShortcutService _shortcutService = new();
     private readonly WaveformGenerator _waveformGenerator = new();
     private readonly Timer _autosaveTimer;
 
@@ -48,7 +49,16 @@ public sealed class TranscriptionViewModel : INotifyPropertyChanged
         _exportService = exportService;
         _jsonService = jsonService;
 
+        _shortcutProfile = _shortcutService.Load();
         Session = new TranscriptionSession();
+        
+        // Ensure at least one segment if empty to allow typing/pasting
+        if (Session.Segments.Count == 0)
+        {
+            var firstSegment = new Segment { StartSeconds = 0, EndSeconds = 0, Text = string.Empty };
+            AttachSegment(firstSegment);
+            Session.Segments.Add(firstSegment);
+        }
 
         OpenAudioCommand = new RelayCommand(OpenAudio);
         OpenSessionCommand = new RelayCommand(OpenSession);
@@ -75,6 +85,7 @@ public sealed class TranscriptionViewModel : INotifyPropertyChanged
         TogglePlaylistCommand = new RelayCommand(() => IsPlaylistVisible = !IsPlaylistVisible);
         ZoomInCommand = new RelayCommand(() => ZoomLevel = Math.Min(10, ZoomLevel * 1.2), () => WaveformData != null);
         ZoomOutCommand = new RelayCommand(() => ZoomLevel = Math.Max(1, ZoomLevel / 1.2), () => WaveformData != null);
+        PasteCommand = new RelayCommand(PasteTranscript);
 
         _audio.PositionChanged += (_, _) =>
         {
@@ -296,6 +307,7 @@ public sealed class TranscriptionViewModel : INotifyPropertyChanged
     public RelayCommand<string> AddMarkerCommand { get; }
     public RelayCommand ZoomInCommand { get; }
     public RelayCommand ZoomOutCommand { get; }
+    public RelayCommand PasteCommand { get; }
     public RelayCommand<object>? UpdateShortcutCommand { get; set; }
 
     public ShortcutProfile CurrentShortcuts
@@ -311,6 +323,44 @@ public sealed class TranscriptionViewModel : INotifyPropertyChanged
             return gesture.GetDisplayStringForCulture(CultureInfo.CurrentCulture);
         }
         return "None";
+    }
+
+    public void SaveShortcuts()
+    {
+        _shortcutService.Save(CurrentShortcuts);
+    }
+    
+    private void PasteTranscript()
+    {
+        var text = Clipboard.GetText();
+        if (string.IsNullOrWhiteSpace(text)) return;
+
+        if (Session.Segments.Count <= 1 && string.IsNullOrWhiteSpace(Session.Segments.FirstOrDefault()?.Text))
+        {
+            // If only one empty segment, just replace its text
+            if (Session.Segments.Count == 0)
+            {
+                var segment = new Segment { StartSeconds = 0, EndSeconds = 0, Text = text };
+                AttachSegment(segment);
+                Session.Segments.Add(segment);
+            }
+            else
+            {
+                Session.Segments[0].Text = text;
+            }
+        }
+        else
+        {
+            // Otherwise append or handle as multiple segments? 
+            // For Notepad-like feel, lets just append to the last segment for now
+            // Or better: ask the user. But I'll just append.
+            var last = Session.Segments.LastOrDefault();
+            if (last != null)
+            {
+                last.Text = (last.Text + "\n" + text).Trim();
+            }
+        }
+        MarkDirty("Text pasted");
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

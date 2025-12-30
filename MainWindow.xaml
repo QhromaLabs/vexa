@@ -158,9 +158,10 @@
                     <ItemsControl ItemsSource="{Binding Session.Segments}" Margin="60">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="{Binding IsActive, Converter={StaticResource ActiveSegmentConverter}}" Padding="4" Margin="0,0,0,8">
+                                <Border Background="{Binding IsActive, Converter={StaticResource ActiveSegmentConverter}}" Padding="4" Margin="0,0,0,2">
                                     <RichTextBox converters:RichTextBoxHelper.BoundText="{Binding Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                 BorderThickness="0" Background="Transparent" FontSize="14" Cursor="IBeam">
+                                                 BorderThickness="0" Background="Transparent" FontSize="15" Cursor="IBeam"
+                                                 AcceptsReturn="True" AcceptsTab="True" SpellCheck.IsEnabled="True">
                                     </RichTextBox>
                                 </Border>
                             </DataTemplate>
@@ -211,6 +212,8 @@
                 <MenuItem Header="Open Audio..." Command="{Binding OpenAudioCommand}" />
                 <MenuItem Header="Open Session..." Command="{Binding OpenSessionCommand}" />
                 <MenuItem Header="Save" Command="{Binding SaveCommand}" />
+                <Separator />
+                <MenuItem Header="Paste Transcript" Command="{Binding PasteCommand}" InputGestureText="Ctrl+V" />
             </MenuItem>
         </Menu>
 
@@ -228,5 +231,10 @@
             </Border>
         </Popup>
     </Grid>
+    <Window.InputBindings>
+        <KeyBinding Command="{Binding PasteCommand}" Gesture="Ctrl+V" />
+        <KeyBinding Command="Undo" Gesture="Ctrl+Z" />
+        <KeyBinding Command="Redo" Gesture="Ctrl+Y" />
+    </Window.InputBindings>
 </Window>
 

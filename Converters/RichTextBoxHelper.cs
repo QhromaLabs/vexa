@@ -31,7 +31,7 @@ public static class RichTextBoxHelper
         }
 
         richTextBox.TextChanged -= OnRichTextBoxTextChanged;
-        SetDocumentText(richTextBox, newText);
+        UpdateDocument(richTextBox, newText);
         richTextBox.TextChanged += OnRichTextBoxTextChanged;
     }
 
@@ -46,12 +46,14 @@ public static class RichTextBoxHelper
         SetBoundText(richTextBox, text);
     }
 
-    private static void SetDocumentText(RichTextBox richTextBox, string text)
+    private static void UpdateDocument(RichTextBox richTextBox, string text)
     {
-        var document = richTextBox.Document ?? new FlowDocument();
-        document.Blocks.Clear();
-        document.Blocks.Add(new Paragraph(new Run(text)));
-        richTextBox.Document = document;
+        var document = richTextBox.Document;
+        var textRange = new TextRange(document.ContentStart, document.ContentEnd);
+        if (textRange.Text != text)
+        {
+            textRange.Text = text;
+        }
     }
 
     private static string GetDocumentText(RichTextBox richTextBox)
